@@ -1,17 +1,34 @@
 package main
 
-import "net/http"
+import (
+	"log"
+	"net/http"
+	"os"
+)
 
-import "log"
-
-func home(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello go-memcached"))
+type application struct {
+	errorLog *log.Logger
+	infoLog  *log.Logger
 }
 
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", home)
-	log.Println("starting server on :4000")
-	err := http.ListenAndServe(":4000", mux)
-	log.Fatal(err)
+
+	cfg := getConfig()
+
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
+	app := &application{
+		errorLog: errorLog,
+		infoLog:  infoLog,
+	}
+
+	srv := &http.Server{
+		Addr:     cfg.addr,
+		ErrorLog: errorLog,
+		Handler:  app.routes(),
+	}
+	infoLog.Printf("starting server on %s", cfg.addr)
+	err := srv.ListenAndServe()
+	errorLog.Fatal(err)
 }
