@@ -6,16 +6,16 @@ import (
 	"runtime/debug"
 )
 
-func (app *application) serverError(w http.ResponseWriter, err error) {
+func (api *httpAPI) serverError(w http.ResponseWriter, err error) {
 	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
-	app.errorLog.Output(2, trace)
+	api.errorLog.Output(2, trace)
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
-func (app *application) clientError(w http.ResponseWriter, status int) {
+func (api *httpAPI) clientError(w http.ResponseWriter, status int) {
 	http.Error(w, http.StatusText(status), status)
 }
 
-func (app *application) notFound(w http.ResponseWriter) {
-	app.clientError(w, http.StatusNotFound)
+func (api *httpAPI) notFound(w http.ResponseWriter) {
+	api.clientError(w, http.StatusNotFound)
 }
