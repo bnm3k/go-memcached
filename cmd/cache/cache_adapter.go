@@ -8,14 +8,14 @@ import (
 //Token ...
 type Token string
 
-//Wrapper ...
-type Wrapper struct {
+//Adapter ...
+type Adapter struct {
 	mu    *sync.Mutex
 	cache Cache
 }
 
 //Set ...
-func (cw *Wrapper) Set(key, val string, exptime int) Reply {
+func (cw *Adapter) Set(key, val string, exptime int) Reply {
 	cw.mu.Lock()
 	defer cw.mu.Unlock()
 	cw.cache.Set(key, val, exptime)
@@ -23,7 +23,7 @@ func (cw *Wrapper) Set(key, val string, exptime int) Reply {
 }
 
 //Add ...
-func (cw *Wrapper) Add(key, val string, exptime int) Reply {
+func (cw *Adapter) Add(key, val string, exptime int) Reply {
 	cw.mu.Lock()
 	defer cw.mu.Unlock()
 	if cw.cache.Exists(key) {
@@ -34,7 +34,7 @@ func (cw *Wrapper) Add(key, val string, exptime int) Reply {
 }
 
 //Replace ...
-func (cw *Wrapper) Replace(key, val string, exptime int) Reply {
+func (cw *Adapter) Replace(key, val string, exptime int) Reply {
 	cw.mu.Lock()
 	defer cw.mu.Unlock()
 	if cw.cache.Exists(key) {
@@ -45,20 +45,20 @@ func (cw *Wrapper) Replace(key, val string, exptime int) Reply {
 }
 
 //Append ...
-func (cw *Wrapper) Append(key, val string, exptime int) Reply {
+func (cw *Adapter) Append(key, val string, exptime int) Reply {
 	cw.mu.Lock()
 	defer cw.mu.Unlock()
 	return cw.appendPrependHelper(key, val, exptime, true)
 }
 
 //Prepend ...
-func (cw *Wrapper) Prepend(key, val string, exptime int) Reply {
+func (cw *Adapter) Prepend(key, val string, exptime int) Reply {
 	cw.mu.Lock()
 	defer cw.mu.Unlock()
 	return cw.appendPrependHelper(key, val, exptime, false)
 }
 
-func (cw *Wrapper) appendPrependHelper(key, val string, exptime int, isAppend bool) Reply {
+func (cw *Adapter) appendPrependHelper(key, val string, exptime int, isAppend bool) Reply {
 	currVal, exists := cw.cache.Get(key)
 	if exists == false {
 		return NotStoredReply
@@ -73,21 +73,21 @@ func (cw *Wrapper) appendPrependHelper(key, val string, exptime int, isAppend bo
 }
 
 //Increment ...
-func (cw *Wrapper) Increment(key, numStr string) Reply {
+func (cw *Adapter) Increment(key, numStr string) Reply {
 	cw.mu.Lock()
 	defer cw.mu.Unlock()
 	return cw.incrDecrHelper(key, numStr, true)
 }
 
 //Decrement ...
-func (cw *Wrapper) Decrement(key, numStr string) Reply {
+func (cw *Adapter) Decrement(key, numStr string) Reply {
 	cw.mu.Lock()
 	defer cw.mu.Unlock()
 	return cw.incrDecrHelper(key, numStr, false)
 }
 
 //Increment ...
-func (cw *Wrapper) incrDecrHelper(key, val string, isAddition bool) Reply {
+func (cw *Adapter) incrDecrHelper(key, val string, isAddition bool) Reply {
 	currVal, exists := cw.cache.Get(key)
 	if exists == false {
 		return NotFoundReply
@@ -115,12 +115,12 @@ func (cw *Wrapper) incrDecrHelper(key, val string, isAddition bool) Reply {
 }
 
 //CompareAndSwap ...
-func (cw *Wrapper) CompareAndSwap(key, val string, exptime int, casKey Token) Reply {
+func (cw *Adapter) CompareAndSwap(key, val string, exptime int, casKey Token) Reply {
 	return NotImplementedReply
 }
 
 //Get ...
-func (cw *Wrapper) Get(key string) (Reply, string) {
+func (cw *Adapter) Get(key string) (Reply, string) {
 	cw.mu.Lock()
 	defer cw.mu.Unlock()
 	val, exists := cw.cache.Get(key)
@@ -131,12 +131,12 @@ func (cw *Wrapper) Get(key string) (Reply, string) {
 }
 
 //GetEntryPlusToken ...
-func (cw *Wrapper) GetEntryPlusToken(key string) (Reply, string, Token) {
+func (cw *Adapter) GetEntryPlusToken(key string) (Reply, string, Token) {
 	return NotImplementedReply, "", ""
 }
 
 //Delete ...
-func (cw *Wrapper) Delete(key string) Reply {
+func (cw *Adapter) Delete(key string) Reply {
 	cw.mu.Lock()
 	defer cw.mu.Unlock()
 	if cw.cache.Exists(key) {
@@ -147,11 +147,11 @@ func (cw *Wrapper) Delete(key string) Reply {
 }
 
 //Clear ...
-func (cw *Wrapper) Clear() Reply {
+func (cw *Adapter) Clear() Reply {
 	return NotImplementedReply
 }
 
 //Stats ...
-func (cw *Wrapper) Stats() Reply {
+func (cw *Adapter) Stats() Reply {
 	return NotImplementedReply
 }
