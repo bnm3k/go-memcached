@@ -15,17 +15,25 @@ type Adapter struct {
 }
 
 //Set ...
-func (cw *Adapter) Set(key, val string, exptime int) Reply {
+func (cw *Adapter) Set(key, val, exptimeStr string) Reply {
 	cw.mu.Lock()
 	defer cw.mu.Unlock()
+	exptime, err := strconv.Atoi(exptimeStr)
+	if err != nil {
+		return ClientErrorReply
+	}
 	cw.cache.Set(key, val, exptime)
 	return StoredReply
 }
 
 //Add ...
-func (cw *Adapter) Add(key, val string, exptime int) Reply {
+func (cw *Adapter) Add(key, val, exptimeStr string) Reply {
 	cw.mu.Lock()
 	defer cw.mu.Unlock()
+	exptime, err := strconv.Atoi(exptimeStr)
+	if err != nil {
+		return ClientErrorReply
+	}
 	if cw.cache.Exists(key) {
 		return NotStoredReply
 	}
@@ -34,9 +42,13 @@ func (cw *Adapter) Add(key, val string, exptime int) Reply {
 }
 
 //Replace ...
-func (cw *Adapter) Replace(key, val string, exptime int) Reply {
+func (cw *Adapter) Replace(key, val, exptimeStr string) Reply {
 	cw.mu.Lock()
 	defer cw.mu.Unlock()
+	exptime, err := strconv.Atoi(exptimeStr)
+	if err != nil {
+		return ClientErrorReply
+	}
 	if cw.cache.Exists(key) {
 		cw.cache.Set(key, val, exptime)
 		return StoredReply
@@ -45,23 +57,27 @@ func (cw *Adapter) Replace(key, val string, exptime int) Reply {
 }
 
 //Append ...
-func (cw *Adapter) Append(key, val string, exptime int) Reply {
+func (cw *Adapter) Append(key, val, exptimeStr string) Reply {
 	cw.mu.Lock()
 	defer cw.mu.Unlock()
-	return cw.appendPrependHelper(key, val, exptime, true)
+	return cw.appendPrependHelper(key, val, exptimeStr, true)
 }
 
 //Prepend ...
-func (cw *Adapter) Prepend(key, val string, exptime int) Reply {
+func (cw *Adapter) Prepend(key, val, exptimeStr string) Reply {
 	cw.mu.Lock()
 	defer cw.mu.Unlock()
-	return cw.appendPrependHelper(key, val, exptime, false)
+	return cw.appendPrependHelper(key, val, exptimeStr, false)
 }
 
-func (cw *Adapter) appendPrependHelper(key, val string, exptime int, isAppend bool) Reply {
+func (cw *Adapter) appendPrependHelper(key, val, exptimeStr string, isAppend bool) Reply {
 	currVal, exists := cw.cache.Get(key)
 	if exists == false {
 		return NotStoredReply
+	}
+	exptime, err := strconv.Atoi(exptimeStr)
+	if err != nil {
+		return ClientErrorReply
 	}
 	if isAppend {
 		cw.cache.Set(key, currVal+val, exptime)
@@ -115,7 +131,11 @@ func (cw *Adapter) incrDecrHelper(key, val string, isAddition bool) Reply {
 }
 
 //CompareAndSwap ...
-func (cw *Adapter) CompareAndSwap(key, val string, exptime int, casKey Token) Reply {
+func (cw *Adapter) CompareAndSwap(key, val, exptimeStr string, casKey Token) Reply {
+	// exptime, err := strconv.Atoi(exptimeStr)
+	// if err != nil {
+	// 	return ClientErrorReply
+	// }
 	return NotImplementedReply
 }
 

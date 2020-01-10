@@ -40,7 +40,7 @@ func (c *LruCache) Exists(key string) bool {
 }
 
 // Set entry from given key-value plus add expiry
-func (c *LruCache) Set(key string, value string, exptime int) {
+func (c *LruCache) Set(key, value string, exptime int) {
 	current, exists := c.kv[key]
 	var expire int64 = 0
 	if exptime > 0 {
