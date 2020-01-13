@@ -1,4 +1,4 @@
-package cache
+package lru
 
 import (
 	"container/list"
@@ -21,7 +21,7 @@ type node struct {
 }
 
 // NewLRUCache returns an empty LRUCache
-func NewLRUCache(max int) *LruCache {
+func Constructor(max int) *LruCache {
 	if max < 1 {
 		max = math.MaxInt64
 	}
@@ -42,6 +42,7 @@ func (c *LruCache) Exists(key string) bool {
 // Set entry from given key-value plus add expiry
 func (c *LruCache) Set(key, value string, exptime int) {
 	current, exists := c.kv[key]
+
 	var expire int64 = 0
 	if exptime > 0 {
 		expire = time.Now().Unix() + int64(exptime)
@@ -59,6 +60,13 @@ func (c *LruCache) Set(key, value string, exptime int) {
 			c.Delete(lruKey)
 		}
 	} else {
+		//first check if expired, if so then delete and return immediately
+		prevExpire := int64(current.Value.(*node).expire)
+		if prevExpire != 0 || expire <= time.Now().Unix() {
+			c.lruList.Remove(current)
+			delete(c.kv, key)
+			return
+		}
 		//update current entry
 		//only update expire val if exptime g.t. 0
 		current.Value.(*node).value = value
@@ -66,15 +74,6 @@ func (c *LruCache) Set(key, value string, exptime int) {
 			current.Value.(*node).expire = expire
 		}
 		c.lruList.MoveToFront(current)
-	}
-}
-
-// Delete entry with given key
-func (c *LruCache) Delete(key string) {
-	current, exists := c.kv[key]
-	if exists == true {
-		c.lruList.Remove(current)
-		delete(c.kv, key)
 	}
 }
 
@@ -92,4 +91,13 @@ func (c *LruCache) Get(key string) (string, bool) {
 		c.Delete(key)
 	}
 	return "", false
+}
+
+// Delete entry with given key
+func (c *LruCache) Delete(key string) {
+	current, exists := c.kv[key]
+	if exists == true {
+		c.lruList.Remove(current)
+		delete(c.kv, key)
+	}
 }
