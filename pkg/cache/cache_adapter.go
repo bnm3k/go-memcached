@@ -3,6 +3,10 @@ package cache
 import (
 	"strconv"
 	"sync"
+
+	lfu "github.com/nagamocha3000/go-memcached/pkg/cache/lfu_cache"
+	lfuLruT "github.com/nagamocha3000/go-memcached/pkg/cache/lfu_lru_t_cache"
+	lru "github.com/nagamocha3000/go-memcached/pkg/cache/lru_cache"
 )
 
 //Token ...
@@ -12,6 +16,23 @@ type Token string
 type Adapter struct {
 	mu    *sync.Mutex
 	cache Cache
+}
+
+//NewCache ...
+func NewCache(cacheType string, capacity int) Adapter {
+	var c Cache
+	switch cacheType {
+	case "lru":
+		c = lru.Constructor(capacity)
+	case "lfu":
+		c = lfu.Constructor(capacity)
+	case "lfu-lrt":
+		c = lfuLruT.Constructor(capacity)
+	}
+	return Adapter{
+		mu:    &sync.Mutex{},
+		cache: c,
+	}
 }
 
 //Set ...
