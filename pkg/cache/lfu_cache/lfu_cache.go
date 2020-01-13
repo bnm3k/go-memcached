@@ -23,13 +23,13 @@ type LfuCache struct {
 }
 
 //Constructor ...
-func Constructor(capacity int) LfuCache {
+func Constructor(capacity int) *LfuCache {
 	if capacity < 1 {
 		capacity = math.MaxInt64
 	}
 	lfuList := make([]set, 1)
 	lfuList[0] = make(map[string]struct{})
-	return LfuCache{
+	return &LfuCache{
 		lfuList:  lfuList,
 		kvStore:  make(map[string]payload),
 		capacity: capacity,
