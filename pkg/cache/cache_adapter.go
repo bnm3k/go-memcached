@@ -129,6 +129,9 @@ func (cw *Adapter) incrDecrHelper(key, val string, isAddition bool) Reply {
 	if exists == false {
 		return NotFoundReply
 	}
+	if val == "" {
+		val = "1"
+	}
 	opNum, err := strconv.Atoi(val)
 	if err != nil {
 		return ClientErrorReply
