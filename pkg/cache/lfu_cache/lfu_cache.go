@@ -50,10 +50,10 @@ func (c *LfuCache) Set(key, value string, exptime int) {
 	if exptime > 0 {
 		expire = time.Now().Unix() + int64(exptime)
 	}
-	if isExpired := c.checkIfExpired(key, entry); isExpired {
-		return
-	}
 	if isPresent { //is update
+		if isExpired := c.checkIfExpired(key, entry); isExpired {
+			return
+		}
 		c.updateFrequency(key, entry)
 		// during update, only update expire val if exptime g.t. 0
 		if exptime > 0 {
@@ -87,8 +87,10 @@ func (c *LfuCache) evictExtra() {
 // Get entry by given key
 func (c *LfuCache) Get(key string) (string, bool) {
 	entry, isPresent := c.kvStore[key]
-	isExpired := c.checkIfExpired(key, entry)
-	if isPresent == false || isExpired {
+	if isPresent == false {
+		return "", false
+	}
+	if isExpired := c.checkIfExpired(key, entry); isExpired {
 		return "", false
 	}
 	c.updateFrequency(key, entry)
