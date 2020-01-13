@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/nagamocha3000/go-memcached/pkg/cache"
+	cache "github.com/nagamocha3000/go-memcached/pkg/cache"
 )
 
 type httpAPI struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
-	cache    *cache.Adapter
+	cache    cache.Adapter
 }
 
 func main() {
@@ -24,6 +24,7 @@ func main() {
 	api := &httpAPI{
 		errorLog: errorLog,
 		infoLog:  infoLog,
+		cache:    cache.NewCache(cfg.cacheType, cfg.cacheCapacity),
 	}
 
 	srv := &http.Server{
