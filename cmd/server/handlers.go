@@ -1,27 +1,31 @@
 package main
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+)
 
-import "strconv"
-
-import "fmt"
-
-func (api *httpAPI) home(w http.ResponseWriter, r *http.Request) {
-	var err error = nil
-	if err != nil {
-		api.errorLog.Println(err.Error())
-		http.Error(w, "Internal Server Error", 500)
-	}
-	w.Write([]byte("Hello go-memcached"))
+type stdReply struct {
+	Reply string `json:"reply"`
 }
 
-func (api *httpAPI) getValue(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get(":key"))
-	if err != nil {
-		api.notFound(w)
-		return
-	}
-	w.Write([]byte(fmt.Sprintf("val for key %d", id)))
+type getReply struct {
+	Reply string `json:"reply"`
+	Val   string `json:"val"`
+}
+
+type getReplyToken struct {
+	Reply string `json:"reply"`
+	Val   string `json:"val"`
+	Token string `json:"token"`
+}
+
+func (api *httpAPI) home(w http.ResponseWriter, r *http.Request) {
+	reply := "Hello go-memcached"
+	jsonString, _ := json.Marshal(
+		stdReply{reply})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonString)
 }
 
 func getStdParams(r *http.Request) (string, string, string) {
@@ -37,85 +41,130 @@ func getStdParams(r *http.Request) (string, string, string) {
 func (api *httpAPI) handleSet(w http.ResponseWriter, r *http.Request) {
 	key, val, exptimeStr := getStdParams(r)
 	reply := api.cache.Set(key, val, exptimeStr)
-	//return only reply
-	w.Write([]byte(reply))
+	jsonString, _ := json.Marshal(
+		stdReply{string(reply)})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonString)
 }
 
 func (api *httpAPI) handleAdd(w http.ResponseWriter, r *http.Request) {
 	key, val, exptimeStr := getStdParams(r)
 	reply := api.cache.Add(key, val, exptimeStr)
 	//return only reply
-	w.Write([]byte(reply))
+	jsonString, _ := json.Marshal(
+		stdReply{string(reply)})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonString)
 }
 
 func (api *httpAPI) handleReplace(w http.ResponseWriter, r *http.Request) {
 	key, val, exptimeStr := getStdParams(r)
 	reply := api.cache.Replace(key, val, exptimeStr)
 	//return only reply
-	w.Write([]byte(reply))
+	jsonString, _ := json.Marshal(
+		stdReply{string(reply)})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonString)
 }
 
 func (api *httpAPI) handleAppend(w http.ResponseWriter, r *http.Request) {
 	key, val, exptimeStr := getStdParams(r)
 	reply := api.cache.Append(key, val, exptimeStr)
 	//return only reply
-	w.Write([]byte(reply))
+	jsonString, _ := json.Marshal(
+		stdReply{string(reply)})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonString)
 }
 
 func (api *httpAPI) handlePrepend(w http.ResponseWriter, r *http.Request) {
 	key, val, exptimeStr := getStdParams(r)
 	reply := api.cache.Prepend(key, val, exptimeStr)
 	//return only reply
-	w.Write([]byte(reply))
+	jsonString, _ := json.Marshal(
+		stdReply{string(reply)})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonString)
 }
 
 func (api *httpAPI) handleIncrement(w http.ResponseWriter, r *http.Request) {
 	key := r.URL.Query().Get(":key")
 	numStr := r.URL.Query().Get("num")
+
 	reply := api.cache.Increment(key, numStr)
-	w.Write([]byte(reply))
+	//return only reply
+	jsonString, _ := json.Marshal(
+		stdReply{string(reply)})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonString)
 }
 
 func (api *httpAPI) handleDecrement(w http.ResponseWriter, r *http.Request) {
 	key := r.URL.Query().Get(":key")
 	numStr := r.URL.Query().Get("num")
 	reply := api.cache.Decrement(key, numStr)
-	w.Write([]byte(reply))
+	//return only reply
+	jsonString, _ := json.Marshal(
+		stdReply{string(reply)})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonString)
 }
 
 func (api *httpAPI) handleCompareAndSwap(w http.ResponseWriter, r *http.Request) {
 	key, val, exptimeStr := getStdParams(r)
 	reply := api.cache.CompareAndSwap(key, val, exptimeStr, "")
-	w.Write([]byte(reply))
+	//return only reply
+	jsonString, _ := json.Marshal(
+		stdReply{string(reply)})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonString)
 }
 
 func (api *httpAPI) handleGet(w http.ResponseWriter, r *http.Request) {
 	key := r.URL.Query().Get(":key")
-	val, reply := api.cache.Get(key)
-	w.Write([]byte(reply))
-	w.Write([]byte(val))
+	reply, val := api.cache.Get(key)
+	//return reply & val
+
+	jsonString, _ := json.Marshal(
+		getReply{string(reply), val})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonString)
 }
 
 func (api *httpAPI) handleGetEntryPlusToken(w http.ResponseWriter, r *http.Request) {
 	key := r.URL.Query().Get(":key")
-	val, reply, token := api.cache.GetEntryPlusToken(key)
-	w.Write([]byte(reply))
-	w.Write([]byte(val))
-	w.Write([]byte(token))
+	reply, val, token := api.cache.GetEntryPlusToken(key)
+	//return reply & val & token
+	jsonString, _ := json.Marshal(
+		getReplyToken{string(reply), val, string(token)})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonString)
 }
 
 func (api *httpAPI) handleDelete(w http.ResponseWriter, r *http.Request) {
 	key := r.URL.Query().Get(":key")
 	reply := api.cache.Delete(key)
-	w.Write([]byte(reply))
+	//return reply
+	jsonString, _ := json.Marshal(
+		stdReply{string(reply)})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonString)
 }
 
 func (api *httpAPI) handleClear(w http.ResponseWriter, r *http.Request) {
 	reply := api.cache.Clear()
-	w.Write([]byte(reply))
+	//return reply
+	jsonString, _ := json.Marshal(
+		stdReply{string(reply)})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonString)
 }
 
 func (api *httpAPI) handleStats(w http.ResponseWriter, r *http.Request) {
 	reply := api.cache.Stats()
-	w.Write([]byte(reply))
+	//return reply
+	jsonString, _ := json.Marshal(
+		stdReply{string(reply)})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonString)
 }
