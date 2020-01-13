@@ -94,13 +94,13 @@ type LfuLrtCache struct {
 }
 
 //Constructor ...
-func Constructor(max int) LfuLrtCache {
+func Constructor(max int) *LfuLrtCache {
 	if max < 1 {
 		max = math.MaxInt64
 	}
 	lfuList := make([]*bucket, 1)
 	lfuList[0] = newBucket()
-	return LfuLrtCache{
+	return &LfuLrtCache{
 		lfuList: lfuList,
 		kvStore: make(map[string]payload),
 		max:     max,
